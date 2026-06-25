@@ -7,9 +7,12 @@ import { Input } from '../components/ui/Input';
 
 interface LoginPageProps {
   onLogin: (email: string) => void;
+  onGoogleLogin: () => Promise<void>;
+  googleAvailable: boolean;
+  googleLoading: boolean;
 }
 
-export function LoginPage({ onLogin }: LoginPageProps) {
+export function LoginPage({ googleAvailable, googleLoading, onGoogleLogin, onLogin }: LoginPageProps) {
   const [email, setEmail] = useState('marina@scanovo.app');
   const [password, setPassword] = useState('scanovo123');
   const [errors, setErrors] = useState({ email: '', password: '' });
@@ -76,7 +79,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           <Button className="login-card__submit" icon={Lock} loading={loading} size="lg" type="submit">
             Entrar
           </Button>
-          <Button icon={Chrome} variant="secondary" size="lg" onClick={() => onLogin(email || 'google@scanovo.app')}>
+          <Button
+            icon={Chrome}
+            loading={googleLoading}
+            variant="secondary"
+            size="lg"
+            onClick={() => void onGoogleLogin()}
+          >
             Entrar com Google
           </Button>
         </form>
@@ -86,7 +95,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         </div>
         <div className="login-security">
           <Mail size={16} />
-          Autenticacao visual simulada. Nenhum dado sensivel e enviado.
+          {googleAvailable
+            ? 'Login Google protegido por Supabase Auth.'
+            : 'Modo demo ativo. Configure o Supabase para ativar o Google.'}
         </div>
       </section>
     </main>

@@ -30,6 +30,8 @@ export interface UserProfile {
   pdfQuality: 'Compacto' | 'Equilibrado' | 'Alta qualidade';
   theme: 'Claro' | 'Escuro';
   language: 'Portugues' | 'English' | 'Espanol';
+  avatarUrl?: string;
+  authProvider?: 'Demo' | 'Google';
 }
 
 export interface ToastMessage {

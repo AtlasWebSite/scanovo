@@ -11,6 +11,7 @@ export const defaultUser: UserProfile = {
   pdfQuality: 'Equilibrado',
   theme: 'Claro',
   language: 'Portugues',
+  authProvider: 'Demo',
 };
 
 export function loadDocuments(): ScanDocument[] {

@@ -16,12 +16,16 @@ export function ProfilePage({ documents, onLogout, onProfile, onUpdateUser, user
 
   return (
     <div className="page-flow">
-      <Header onProfile={onProfile} title="Perfil" subtitle="Preferencias locais e plano simulado." />
+      <Header onProfile={onProfile} title="Perfil" subtitle="Preferencias locais e seguranca da conta." />
       <section className="profile-hero">
-        <div className="avatar">MC</div>
+        <div className="avatar">
+          {user.avatarUrl ? <img alt="" src={user.avatarUrl} /> : user.name.slice(0, 2).toUpperCase()}
+        </div>
         <div>
           <h2>{user.name}</h2>
-          <p>{user.email}</p>
+          <p>
+            {user.email} · {user.authProvider ?? 'Demo'}
+          </p>
         </div>
         <span>
           <Sparkles size={16} /> {user.plan}

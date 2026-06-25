@@ -8,9 +8,9 @@ import { Input } from './components/ui/Input';
 import { Modal } from './components/ui/Modal';
 import { ToastStack } from './components/ui/ToastStack';
 import { useDocuments } from './hooks/useDocuments';
+import { useAuth } from './hooks/useAuth';
 import { ToastProvider, useToast } from './hooks/useToast';
 import { exportDocumentToPdf } from './services/pdf';
-import { loadUser, saveUser } from './services/storage';
 import { EditorPage } from './pages/EditorPage';
 import { FilesPage } from './pages/FilesPage';
 import { HomePage } from './pages/HomePage';
@@ -34,7 +34,15 @@ function ScanovoApp() {
     updateDocumentPages,
   } = useDocuments();
   const { showToast } = useToast();
-  const [authenticated, setAuthenticated] = useState(false);
+  const {
+    authenticated,
+    authStatus,
+    loginWithDemo,
+    loginWithGoogle,
+    logout,
+    updateUser,
+    user,
+  } = useAuth();
   const [activePage, setActivePage] = useState<AppPage>('home');
   const [editingDocumentId, setEditingDocumentId] = useState<string | null>(null);
   const [homeSearch, setHomeSearch] = useState('');
@@ -42,7 +50,6 @@ function ScanovoApp() {
   const [documentToRename, setDocumentToRename] = useState<ScanDocument | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [exportingId, setExportingId] = useState<string | null>(null);
-  const [user, setUser] = useState<UserProfile>(() => loadUser());
   const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const editingDocument = documents.find((document) => document.id === editingDocumentId) ?? null;
@@ -53,15 +60,37 @@ function ScanovoApp() {
       : recentDocuments;
   }, [homeSearch, recentDocuments]);
 
+  if (!authStatus.ready) {
+    return (
+      <>
+        <div className="auth-loading">
+          <span className="spinner" aria-hidden="true" />
+          Preparando sua sessao
+        </div>
+        <ToastStack />
+      </>
+    );
+  }
+
   if (!authenticated) {
     return (
       <>
         <LoginPage
+          googleAvailable={authStatus.googleAvailable}
+          googleLoading={authStatus.googleLoading}
+          onGoogleLogin={async () => {
+            try {
+              await loginWithGoogle();
+            } catch (error) {
+              showToast({
+                type: 'error',
+                title: 'Login Google indisponivel.',
+                description: error instanceof Error ? error.message : 'Verifique a configuracao do Supabase.',
+              });
+            }
+          }}
           onLogin={(email) => {
-            const nextUser = { ...user, email };
-            setUser(nextUser);
-            saveUser(nextUser);
-            setAuthenticated(true);
+            loginWithDemo(email);
             showToast({ type: 'success', title: 'Bem-vindo ao Scanovo.' });
           }}
         />
@@ -272,13 +301,12 @@ function ScanovoApp() {
         <ProfilePage
           documents={documents}
           onLogout={() => {
-            setAuthenticated(false);
+            void logout();
             showToast({ type: 'info', title: 'Sessao encerrada.' });
           }}
           onProfile={() => navigate('profile')}
           onUpdateUser={(nextUser) => {
-            setUser(nextUser);
-            saveUser(nextUser);
+            updateUser(nextUser);
             showToast({ type: 'success', title: 'Configuracao salva.' });
           }}
           user={user}
